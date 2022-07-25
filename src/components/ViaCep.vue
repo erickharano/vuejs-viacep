@@ -63,8 +63,8 @@ export default {
     validSearch() {
       this.errors = [];
 
-      if (this.cep.toString().length < 8) {
-        this.errors.push('Preencha o campo CEP corretamente.');
+      if (this.cep.trim().replace(/[^0-9]/g, '').toString().length < 8) {
+        this.errors.push('Preencha o campo CEP corretamente (somente números).');
       }
 
       if (this.errors.length) {
@@ -92,6 +92,7 @@ export default {
           } 
           else {
             // get from API Viacep and insert database
+            this.inserted = false;
             this.searchViaCep();
           } 
         })
@@ -111,16 +112,16 @@ export default {
       axios.get(url_cep)
         .then(function (response) {
 
-          var cep = [{
+          var cep = {
             'zipcode': response.data.cep.trim().replace(/[^0-9]/g, ''),
             'address': response.data.logradouro,
             'complement': response.data.complemento,
             'neighborhood': response.data.bairro,
             'state': response.data.uf,
             'city': response.data.localidade
-          }];
+          };
 
-          this.data = cep;
+          this.data = [cep];
 
           if (!this.inserted) {
             ViaCepService.create(cep)
