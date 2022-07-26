@@ -1,5 +1,10 @@
 # vuejs-viacep
 
+## Docker setup
+```
+Install docker on your computer according to your operating system ( https://docs.docker.com/desktop/ )
+```
+
 ## Project setup
 ```
 npm install
