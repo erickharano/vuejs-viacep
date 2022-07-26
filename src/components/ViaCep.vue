@@ -2,7 +2,7 @@
   <div class="list row">
     <div class="col-md-12">
       <div class="input-group mb-3">
-        <input type="text" class="form-control" placeholder="Pesquisar pelo CEP" ref="cep" v-model="cep"/>
+        <input type="text" class="form-control" placeholder="Pesquisar pelo CEP" ref="cep" v-model="cep" maxlength="8" />
 
         <div class="input-group-append">
           <button class="btn btn-outline-secondary" type="button" @click="searchCep">
@@ -26,9 +26,12 @@
       <div v-if="data.length">
         <ul class="list-group">
           <li class="list-group-item" v-for="cep in data" v-bind:key="cep">
-            {{ cep.zipcode }} - {{ cep.address }} <br>
+            CEP: {{ formatCep(cep.zipcode) }} <br>
+            Endereço: {{ cep.address }} <br>
             <small>
-              {{ cep.neighborhood }} - {{ cep.city }}/{{ cep.state }} 
+              Complemento: {{ cep.complement }} <br>
+              Bairro: {{ cep.neighborhood }} <br>
+              Cidade/UF: {{ cep.city }}/{{ cep.state }} 
             </small>
           </li>
         </ul>
@@ -52,6 +55,14 @@ export default {
     };
   },
   methods: {
+    formatCep(cep) {
+      var zipcode = cep.trim().replace(/[^0-9]/g, '').toString();
+      var c1 = zipcode.substr(0,2);
+      var c2 = zipcode.substr(2,3);
+      var c3 = zipcode.substr(5);
+      return `${c1}.${c2}-${c3}`;
+    },
+
     resetForm() {
       this.errors = [];
       this.data = [];
@@ -85,13 +96,10 @@ export default {
       ViaCepService.findByCep(this.cep.trim().replace(/[^0-9]/g, ''))
         .then(response => {
           if (response.data.length) {
-            // get from database
             this.inserted = true;
             this.data = response.data;
-            console.log(response.data);
           } 
           else {
-            // get from API Viacep and insert database
             this.inserted = false;
             this.searchViaCep();
           } 
@@ -112,26 +120,33 @@ export default {
       axios.get(url_cep)
         .then(function (response) {
 
-          var cep = {
-            'zipcode': response.data.cep.trim().replace(/[^0-9]/g, ''),
-            'address': response.data.logradouro,
-            'complement': response.data.complemento,
-            'neighborhood': response.data.bairro,
-            'state': response.data.uf,
-            'city': response.data.localidade
-          };
+          if (response.data.erro !== undefined) {
+            this.errors = [];
+            this.errors.push('CEP inválido.');
+          } 
+          else {
 
-          this.data = [cep];
+            var cep = {
+              'zipcode': response.data.cep.trim().replace(/[^0-9]/g, ''),
+              'address': response.data.logradouro,
+              'complement': response.data.complemento,
+              'neighborhood': response.data.bairro,
+              'state': response.data.uf,
+              'city': response.data.localidade
+            };
 
-          if (!this.inserted) {
-            ViaCepService.create(cep)
-              .then(response => {
-                console.log(response.data);
-                this.inserted = true;
-              })
-              .catch(e => {
-                console.log(e);
-              });
+            this.data = [cep];
+
+            if (!this.inserted) {
+              ViaCepService.create(cep)
+                .then(response => {
+                  console.log({'data': response.data});
+                  this.inserted = true;
+                })
+                .catch(e => {
+                  console.log(e);
+                });
+            }
           }
 
         }.bind(this)).catch(function (error) {
@@ -155,6 +170,8 @@ export default {
 
 .list-group-item.error {
   color: red;
-
+  border-width: 0;
+  padding-top: 0;
+  padding-left: 0;
 }
 </style>

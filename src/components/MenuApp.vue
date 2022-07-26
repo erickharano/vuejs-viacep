@@ -6,7 +6,7 @@
         </router-link>
         <div class="navbar-nav mr-auto">
             <li class="nav-item">
-                <router-link to="/CEP" class="nav-link">Pesquisa de CEP</router-link>
+                <router-link to="/cep" class="nav-link">Pesquisa de CEP</router-link>
             </li>
         </div>
     </nav>
